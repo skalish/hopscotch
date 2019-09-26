@@ -98,7 +98,6 @@ def scotch_output():
 
     scotches = []
     for i in range(10):
-        print(scored_df.iloc[i]['Nose_common'])
         scotches.append(dict(index=scored_df.iloc[i]['index'],
                              name=scored_df.iloc[i]['name'],
                              price=scored_df.iloc[i]['price_usd'],

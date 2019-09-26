@@ -9,7 +9,7 @@ tokenizer = RegexpTokenizer(r'\w+')
 
 # Count vectorizer function
 def cv(data):
-    count_vectorizer = TfidfVectorizer()
+    count_vectorizer = CountVectorizer()
 
     emb = count_vectorizer.fit_transform(data)
 
@@ -28,6 +28,11 @@ def gen_cos_sim(df):
     counts2, counts_vectorizer = cv(df["Finish"].tolist())
     counts = hstack((counts, counts2))
 
+    # OPTIONAL: Catenate region information, weight relative to individual words
+    region_weight = 2
+    region_array = df[['reg_0', 'reg_1', 'reg_2', 'reg_3', 'reg_4', 'reg_5', 'reg_6', 'reg_7']].values
+    counts = hstack((counts, region_weight * region_array))
+    
     # Return cosine similarity matrix
     return cosine_similarity(counts)
 
