@@ -7,6 +7,9 @@ from nltk.tokenize import RegexpTokenizer
 
 tokenizer = RegexpTokenizer(r'\w+')
 
+def length_filter(t):
+    return [s for s in t if len(s) > 2]
+
 # Count vectorizer function
 def cv(data):
     count_vectorizer = CountVectorizer()
@@ -38,9 +41,9 @@ def gen_cos_sim(df):
 
 def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     # Generate tokenized note descriptions
-    rec_df['Nose_tokens'] = rec_df['Nose_clean'].apply(tokenizer.tokenize)
-    rec_df['Palate_tokens'] = rec_df['Palate_clean'].apply(tokenizer.tokenize)
-    rec_df['Finish_tokens'] = rec_df['Finish_clean'].apply(tokenizer.tokenize)
+    rec_df['Nose_tokens'] = rec_df['Nose_clean'].apply(tokenizer.tokenize).apply(length_filter)
+    rec_df['Palate_tokens'] = rec_df['Palate_clean'].apply(tokenizer.tokenize).apply(length_filter)
+    rec_df['Finish_tokens'] = rec_df['Finish_clean'].apply(tokenizer.tokenize).apply(length_filter)
 
 
     # Initialize lists of liked and disliked notes

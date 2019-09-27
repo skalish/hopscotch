@@ -59,7 +59,7 @@ def scotch_input():
         scotch_list.append(query_results.iloc[i]['name'])
 
     return render_template("input.html",
-                           scotch_list = scotch_list)
+                           scotch_list = sorted(scotch_list))
 
 @app.route('/output')
 def scotch_output():
