@@ -7,7 +7,7 @@ from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
 
-# Python code to connect to Postgres
+# Connect to Postgres scotch database
 user = 'skalish'
 host = 'localhost'
 dbname = 'scotch_db'
@@ -21,18 +21,7 @@ def index():
        title = 'Home', user = { 'nickname': 'Visitor' }
        )
 
-@app.route('/db')
-def scotch_page():
-    sql_query = """
-                SELECT * FROM scotch_data_table_clean;
-                """
-    query_results = pd.read_sql_query(sql_query,con)
-    scotches = ""
-    for i in range(0,100):
-        scotches += query_results.iloc[i]['Region']
-        scotches += "<br>"
-    return scotches
-
+# Page displaying all scotches in database
 @app.route('/db_fancy')
 def scotch_page_fancy():
     sql_query = """

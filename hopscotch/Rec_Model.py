@@ -12,7 +12,7 @@ def length_filter(t):
 
 # Count vectorizer function
 def cv(data):
-    count_vectorizer = CountVectorizer()
+    count_vectorizer = TfidfVectorizer()
 
     emb = count_vectorizer.fit_transform(data)
 
@@ -39,12 +39,12 @@ def gen_cos_sim(df):
     # Return cosine similarity matrix
     return cosine_similarity(counts)
 
+
 def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     # Generate tokenized note descriptions
     rec_df['Nose_tokens'] = rec_df['Nose_clean'].apply(tokenizer.tokenize).apply(length_filter)
     rec_df['Palate_tokens'] = rec_df['Palate_clean'].apply(tokenizer.tokenize).apply(length_filter)
     rec_df['Finish_tokens'] = rec_df['Finish_clean'].apply(tokenizer.tokenize).apply(length_filter)
-
 
     # Initialize lists of liked and disliked notes
     nose_liked_notes = []
@@ -54,35 +54,37 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     finish_liked_notes = []
     finish_disliked_notes = []
     
-    # Set user_pref column values from lists supplied by user
+    # Set user_pref array values from lists supplied by user
     rec_df['user_pref'] = np.zeros(rec_df.shape[0])
     for name in liked_list:
+        # Signify liked items by 1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = 1
+        # Store tasting note tokens of liked items
         nose_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Nose_tokens'].values[0])
         palate_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
         finish_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Finish_tokens'].values[0])
     for name in disliked_list:
+        # Signify disliked items by -1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = -1
+        # Store tasting note tokens of disliked items
         nose_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Nose_tokens'].values[0])
         palate_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
         finish_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Finish_tokens'].values[0])
 
+    # Remove 'disliked' tokens from 'liked' tokens
     nose_liked_notes = set(nose_liked_notes) - set(nose_disliked_notes)
-    
     palate_liked_notes = set(palate_liked_notes) - set(palate_disliked_notes)
-    
     finish_liked_notes = set(finish_liked_notes) - set(finish_disliked_notes)
-    
     
     # Generate cosine similarity matrix
     cos_sim = gen_cos_sim(rec_df)
     
     # Calculate scores and store in rec_df
     rec_df['score'] = list(np.array(rec_df['user_pref']).dot(cos_sim))
-    #rec_df['Nose_common'] = rec_df['Nose_tokens'].apply(type)
+    
     rec_df['Nose_common'] = rec_df['Nose_tokens'].apply(set).apply(nose_liked_notes.intersection).apply(list).apply(', '.join)
-    rec_df['Palate_common'] = rec_df['Palate_tokens'].apply(set).apply(nose_liked_notes.intersection).apply(list).apply(', '.join)
-    rec_df['Finish_common'] = rec_df['Finish_tokens'].apply(set).apply(nose_liked_notes.intersection).apply(list).apply(', '.join)
+    rec_df['Palate_common'] = rec_df['Palate_tokens'].apply(set).apply(palate_liked_notes.intersection).apply(list).apply(', '.join)
+    rec_df['Finish_common'] = rec_df['Finish_tokens'].apply(set).apply(finish_liked_notes.intersection).apply(list).apply(', '.join)
     
     # Sort by score and exclude items that have already been rated
     result = rec_df[rec_df['user_pref'] == 0].sort_values(by='score', ascending = False)
