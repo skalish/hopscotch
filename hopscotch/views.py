@@ -68,8 +68,6 @@ def scotch_output():
     # Pull price range from input fields
     low_price = request.args.get('low_price')
     high_price = request.args.get('high_price')
-    print(low_price)
-    print(high_price)
     
     # Fill dataframe from scotch database
     rec_query = "SELECT * FROM scotch_data_table_clean"
@@ -78,9 +76,15 @@ def scotch_output():
     # Apply model and get dataframe sorted by score
     scored_df = ApplyModel(rec_df, good_products, bad_products)
 
-    # Filter by user price range
-    scored_df = scored_df[scored_df.price_usd >= int(low_price)]
-    scored_df = scored_df[scored_df.price_usd <= int(high_price)]
+    # Filter by user price range. If int conversion fails, ignore
+    try:
+        scored_df = scored_df[scored_df.price_usd >= int(low_price)]
+    except:
+        pass
+    try:
+        scored_df = scored_df[scored_df.price_usd <= int(high_price)]
+    except:
+        pass
     
     # Recommend scotches only from 1000 most popular products (optional)
     scored_df = scored_df[scored_df.index < 1000]
