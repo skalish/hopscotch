@@ -82,11 +82,12 @@ def scotch_output():
     scored_df = scored_df[scored_df.price_usd >= int(low_price)]
     scored_df = scored_df[scored_df.price_usd <= int(high_price)]
     
-    # Recommend scotches only from 800 most popular products (optional)
-    scored_df = scored_df[scored_df.index < 800]
+    # Recommend scotches only from 1000 most popular products (optional)
+    scored_df = scored_df[scored_df.index < 1000]
 
+    # Create list of top 10 recommended scotches to pass to output
     scotches = []
-    for i in range(10):
+    for i in range(min(10, scored_df.shape[0])):
         scotches.append(dict(index=scored_df.iloc[i]['index'],
                              name=scored_df.iloc[i]['name'],
                              price=scored_df.iloc[i]['price_usd'],

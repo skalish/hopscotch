@@ -31,7 +31,7 @@ def gen_cos_sim(df):
     counts2, counts_vectorizer = cv(df["Finish"].tolist())
     counts = hstack((counts, counts2))
 
-    # OPTIONAL: Catenate region information, weight relative to individual words
+    # Catenate region information, weight relative to individual words
     region_weight = 2
     region_array = df[['reg_0', 'reg_1', 'reg_2', 'reg_3', 'reg_4', 'reg_5', 'reg_6', 'reg_7']].values
     counts = hstack((counts, region_weight * region_array))
@@ -56,6 +56,7 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     
     # Set user_pref array values from lists supplied by user
     rec_df['user_pref'] = np.zeros(rec_df.shape[0])
+
     for name in liked_list:
         # Signify liked items by 1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = 1
@@ -63,6 +64,7 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
         nose_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Nose_tokens'].values[0])
         palate_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
         finish_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Finish_tokens'].values[0])
+        
     for name in disliked_list:
         # Signify disliked items by -1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = -1
@@ -71,7 +73,7 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
         palate_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
         finish_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Finish_tokens'].values[0])
 
-    # Remove 'disliked' tokens from 'liked' tokens
+    # Remove 'disliked' tokens from 'liked' token list
     nose_liked_notes = set(nose_liked_notes) - set(nose_disliked_notes)
     palate_liked_notes = set(palate_liked_notes) - set(palate_disliked_notes)
     finish_liked_notes = set(finish_liked_notes) - set(finish_disliked_notes)
@@ -81,7 +83,8 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     
     # Calculate scores and store in rec_df
     rec_df['score'] = list(np.array(rec_df['user_pref']).dot(cos_sim))
-    
+
+    # Store 'liked' tokens common to item being recommended
     rec_df['Nose_common'] = rec_df['Nose_tokens'].apply(set).apply(nose_liked_notes.intersection).apply(list).apply(', '.join)
     rec_df['Palate_common'] = rec_df['Palate_tokens'].apply(set).apply(palate_liked_notes.intersection).apply(list).apply(', '.join)
     rec_df['Finish_common'] = rec_df['Finish_tokens'].apply(set).apply(finish_liked_notes.intersection).apply(list).apply(', '.join)
