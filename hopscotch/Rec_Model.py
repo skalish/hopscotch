@@ -7,6 +7,7 @@ from nltk.tokenize import RegexpTokenizer
 
 tokenizer = RegexpTokenizer(r'\w+')
 
+# Make sure only to pass tokens longer than 2 characters
 def length_filter(t):
     return [s for s in t if len(s) > 2]
 
@@ -54,12 +55,13 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     finish_liked_notes = []
     finish_disliked_notes = []
     
-    # Set user_pref array values from lists supplied by user
+    # Set values in array of user preference from lists supplied by user
     rec_df['user_pref'] = np.zeros(rec_df.shape[0])
 
     for name in liked_list:
         # Signify liked items by 1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = 1
+        
         # Store tasting note tokens of liked items
         nose_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Nose_tokens'].values[0])
         palate_liked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
@@ -68,6 +70,7 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     for name in disliked_list:
         # Signify disliked items by -1
         rec_df.loc[rec_df['name'] == name, 'user_pref'] = -1
+        
         # Store tasting note tokens of disliked items
         nose_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Nose_tokens'].values[0])
         palate_disliked_notes.extend(rec_df.loc[rec_df['name'] == name, 'Palate_tokens'].values[0])
@@ -81,10 +84,10 @@ def ApplyModel(rec_df, liked_list = [], disliked_list = []):
     # Generate cosine similarity matrix
     cos_sim = gen_cos_sim(rec_df)
     
-    # Calculate scores and store in rec_df
+    # Calculate scores and store in dataframe score column
     rec_df['score'] = list(np.array(rec_df['user_pref']).dot(cos_sim))
 
-    # Store 'liked' tokens common to item being recommended
+    # For each item, store tokens common to items liked by user
     rec_df['Nose_common'] = rec_df['Nose_tokens'].apply(set).apply(nose_liked_notes.intersection).apply(list).apply(', '.join)
     rec_df['Palate_common'] = rec_df['Palate_tokens'].apply(set).apply(palate_liked_notes.intersection).apply(list).apply(', '.join)
     rec_df['Finish_common'] = rec_df['Finish_tokens'].apply(set).apply(finish_liked_notes.intersection).apply(list).apply(', '.join)

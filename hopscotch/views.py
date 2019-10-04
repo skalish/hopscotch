@@ -35,14 +35,15 @@ def scotch_page_fancy():
                            region=query_results.iloc[i]['Region']))
     return render_template('scotches.html', scotches=scotches)
 
+# Input page for users to provide liked and disliked scotches and price range
 @app.route('/')
 @app.route('/input')
 def scotch_input():
-    # get list of scotches
+    # Get all scotches from database
     query = "SELECT name FROM scotch_data_table_clean"
-    print(query)
     query_results = pd.read_sql_query(query,con)
-    print(query_results)
+
+    # Create list of scotch names for user selection
     scotch_list = []
     for i in range(0,query_results.shape[0]):
         scotch_list.append(query_results.iloc[i]['name'])
@@ -50,44 +51,36 @@ def scotch_input():
     return render_template("input.html",
                            scotch_list = sorted(scotch_list))
 
+# Output page providing scotch recommendations based on user input
 @app.route('/output')
 def scotch_output():
-    query = "SELECT name FROM scotch_data_table_clean"
-    print(query)
-    query_results = pd.read_sql_query(query,con)
-    print(query_results)
-    scotch_list = []
-    for i in range(0,query_results.shape[0]):
-        scotch_list.append(query_results.iloc[i]['name'])
-
-    
-    # Pull 'liked' and 'disliked' scotch names from input fields and store them
+    # Get 'liked' and 'disliked' scotch names from input fields and store them
     good_products = request.args.getlist('likes')
     bad_products = request.args.getlist('dislikes')
 
-    # Pull price range from input fields
+    # Get price range from input fields
     low_price = request.args.get('low_price')
     high_price = request.args.get('high_price')
     
-    # Fill dataframe from scotch database
+    # Create dataframe from scotch database
     rec_query = "SELECT * FROM scotch_data_table_clean"
     rec_df=pd.read_sql_query(rec_query,con)
 
-    # Apply model and get dataframe sorted by score
+    # Apply model returning dataframe sorted by recommendation score
     scored_df = ApplyModel(rec_df, good_products, bad_products)
 
-    # Filter by user price range. If int conversion fails, ignore
+    # Filter by user price range. If conversion to float fails, ignore
     try:
-        scored_df = scored_df[scored_df.price_usd >= int(low_price)]
+        scored_df = scored_df[scored_df.price_usd >= float(low_price)]
     except:
         pass
     try:
-        scored_df = scored_df[scored_df.price_usd <= int(high_price)]
+        scored_df = scored_df[scored_df.price_usd <= float(high_price)]
     except:
         pass
     
     # Recommend scotches only from 1000 most popular products (optional)
-    scored_df = scored_df[scored_df.index < 1000]
+    # scored_df = scored_df[scored_df.index < 1000]
 
     # Create list of top 10 recommended scotches to pass to output
     scotches = []
