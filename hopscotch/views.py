@@ -95,5 +95,4 @@ def scotch_output():
                              finish=scored_df.iloc[i]['Finish_common']))
     
     return render_template("output.html",
-                           scotch_list = scotch_list,
                            scotches = scotches)
