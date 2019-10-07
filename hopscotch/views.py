@@ -35,6 +35,11 @@ def scotch_page_fancy():
                            region=query_results.iloc[i]['Region']))
     return render_template('scotches.html', scotches=scotches)
 
+# Page with embedded slide presentation
+@app.route('/slides')
+def slide_page():
+    return render_template("slides.html")
+
 # Input page for users to provide liked and disliked scotches and price range
 @app.route('/')
 @app.route('/input')
